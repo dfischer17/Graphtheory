@@ -10,7 +10,8 @@ public class Main {
     
     public static void main(String[] args) {
         Graph graph = new Graph();
-        graph.read(new File("C:\\Users\\Daniel\\OneDrive\\HTL Unterlagen\\4. Jhg\\AUD\\Graphentheorie\\Graphtheory\\Suchproblem.csv"));
+        graph.read(new File("C:\\Users\\ManfredFröhler\\IdeaProjects\\Graphtheory\\src\\com\\company\\Linz_Suchproblem.csv"));
+        graph.determineShortestPath(0,2);
     }
     
 }
