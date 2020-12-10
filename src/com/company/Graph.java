@@ -43,8 +43,8 @@ public class Graph {
         }
         return lowestDistanceNode;
     }
-    private static void CalculateMinimumDistance(Node evaluationNode, Integer edgeWeigh, Node sourceNode) {
-        Integer sourceDistance = sourceNode.getDistance();
+    private static void CalculateMinimumDistance(Node evaluationNode, int edgeWeigh, Node sourceNode) {
+        int sourceDistance = sourceNode.getDistance();
         if (sourceDistance + edgeWeigh < evaluationNode.getDistance()) {
             evaluationNode.setDistance(sourceDistance + edgeWeigh);
             LinkedList<Node> shortestPath = new LinkedList<Node>(sourceNode.getShortestPath());
@@ -58,7 +58,6 @@ public class Graph {
         Node startNode = new Node(String.valueOf(sourceNodeId));
         startNode.setDistance(0);
 
-
         //End Node
         Node endNode = new Node(String.valueOf(targetNodeId));
 
@@ -70,24 +69,42 @@ public class Graph {
                 {
                     Node nodeA = new Node(String.valueOf(y+1)); //Node wo man sich befindet
                     Node nodeB = new Node(String.valueOf(x+1)); //Nächste Node
-                    nodeA.addDestination(nodeB,matrices[x][y]); //matrices[x][y] = Distanz zwischen den beiden nodes && Node Nachbarn werden zur Stammnode hinzugefügt
-                    nodes.add(nodeA);
+                    if(nodes.size()==0)
+                    {
+                        nodeA.addDestination(nodeB,matrices[x][y]);
+                        nodes.add(nodeA);
+                    }
+                    else {
+                        boolean added = false;
+                        for (Node n : nodes)
+                        {
+                            if (nodeA.getNode().equals(n.getNode()))
+                            {
+                                n.addDestination(nodeB, matrices[x][y]);
+                                added = true;
+                            }
+                        }
+                        if(added == false)
+                        {
+                            nodeA.addDestination(nodeB, matrices[x][y]); //matrices[x][y] = Distanz zwischen den beiden nodes && Node Nachbarn werden zur Stammnode hinzugefügt
+                            nodes.add(nodeA);
+                        }
+                    }
                 }
             }
         }
 
         Set<Node> settledNodes = new HashSet<>();
         Set<Node> unsettledNodes = new HashSet<>();
-
-        unsettledNodes.add(startNode);
+        unsettledNodes = nodes;
 
         while (unsettledNodes.size() != 0) {
             Node currentNode = getLowestDistanceNode(unsettledNodes);
             unsettledNodes.remove(currentNode);
-            for (Map.Entry< Node, Integer> adjacencyPair:
-                    currentNode.getAdjacentNodes().entrySet()) {
+
+            for (Map.Entry< Node, Integer> adjacencyPair: currentNode.getAdjacentNodes().entrySet()) {
                 Node adjacentNode = adjacencyPair.getKey();
-                Integer edgeWeight = adjacencyPair.getValue();
+                int edgeWeight = adjacencyPair.getValue();
                 if (!settledNodes.contains(adjacentNode)) {
                     CalculateMinimumDistance(adjacentNode, edgeWeight, currentNode);
                     unsettledNodes.add(adjacentNode);
@@ -99,8 +116,6 @@ public class Graph {
 
         return path;
     }
-
-
 
     public Path determineShortestPath(int sourceNodeId, int targetNodeId, int... viaNodeIds) {
         return null;

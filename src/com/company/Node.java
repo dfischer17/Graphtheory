@@ -8,7 +8,7 @@ import java.util.Map;
 public class Node {
 
     //Name der Node
-    private String node;
+    private String name;
 
     //Kürzester Pfad vom Start weg
     private List<Node> shortestPath = new LinkedList<>();
@@ -21,7 +21,7 @@ public class Node {
 
     public Node(String node)
     {
-        this.node = node;
+        this.name = node;
     }
 
     public void addDestination(Node dest, int dist)
@@ -30,11 +30,11 @@ public class Node {
     }
 
     public String getNode() {
-        return node;
+        return name;
     }
 
     public void setNode(String node) {
-        this.node = node;
+        this.name = node;
     }
 
     public int getDistance() {
