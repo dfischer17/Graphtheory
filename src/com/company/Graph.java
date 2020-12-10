@@ -4,14 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Daniel Fischer, Pepe Fröhler, Matthias Kroiß
  */
 public class Graph {
-    double matrices[][] = new double[50][50];
+    int matrices[][] = new int[51][51];
+
+    private Set<Node> nodes = new HashSet<>();
+
     public void read(File adjacencyMatrix) {
+
         try {
             // Read matrices rows from file
             List<String> lines = Files.readAllLines(adjacencyMatrix.toPath());
@@ -20,65 +24,84 @@ public class Graph {
             for (int y = 0; y < matrices.length; y++) {
                 for (int x = 0; x < matrices.length; x++) {
                     String[] lineValues = lines.get(y).split(";");
-                    matrices[x][y] = Double.parseDouble(lineValues[x]);
+                    matrices[x][y] = Integer.parseInt(lineValues[x]);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
-    public Path determineShortestPath(int sourceNodeId, int targetNodeId) {
-
-        //Set values
-        boolean visited[] = new boolean[50];
-        double distance[] = new double[50];
-
-        for(int i = 0; i<50;i++)
-        {
-            distance[i] = Double.MAX_VALUE;
-            visited[i] = false;
-
+    private static Node getLowestDistanceNode(Set < Node > unsettledNodes) {
+        Node lowestDistanceNode = null;
+        int lowestDistance = Integer.MAX_VALUE;
+        for (Node node: unsettledNodes) {
+            int nodeDistance = node.getDistance();
+            if (nodeDistance < lowestDistance) {
+                lowestDistance = nodeDistance;
+                lowestDistanceNode = node;
+            }
         }
-        distance[sourceNodeId] = 0.0;
+        return lowestDistanceNode;
+    }
+    private static void CalculateMinimumDistance(Node evaluationNode, Integer edgeWeigh, Node sourceNode) {
+        Integer sourceDistance = sourceNode.getDistance();
+        if (sourceDistance + edgeWeigh < evaluationNode.getDistance()) {
+            evaluationNode.setDistance(sourceDistance + edgeWeigh);
+            LinkedList<Node> shortestPath = new LinkedList<Node>(sourceNode.getShortestPath());
+            shortestPath.add(sourceNode);
+            evaluationNode.setShortestPath(shortestPath);
+        }
+    }
 
-        //Update distances
-        double shortestDistance = 0.0;
-        for(int i = 0; i<50;i++)
+    public Path determineShortestPath(int sourceNodeId, int targetNodeId) {
+        //Anfangs Node
+        Node startNode = new Node(String.valueOf(sourceNodeId));
+        startNode.setDistance(0);
+
+
+        //End Node
+        Node endNode = new Node(String.valueOf(targetNodeId));
+
+        for(int y = 0; y<matrices.length;y++)
         {
-            int index = shortestDistanceIndex(visited,distance);
-            visited[index] = true;
-            for(int j = 0;j<50;j++)
+            for(int x = 0; x<matrices.length;x++)
             {
-                if(distance[index]+matrices[index][j]<distance[j]&&!(visited[j])&&matrices[index][j]!=0.0&&distance[index]!=Integer.MAX_VALUE)
+                if(matrices[x][y]!=0)
                 {
-                    distance[j] = distance[index]+ matrices[index][j];
-                    if(targetNodeId == j)
-                    {
-                        shortestDistance = distance[j];
-                        break;
-                    }
+                    Node nodeA = new Node(String.valueOf(y+1)); //Node wo man sich befindet
+                    Node nodeB = new Node(String.valueOf(x+1)); //Nächste Node
+                    nodeA.addDestination(nodeB,matrices[x][y]); //matrices[x][y] = Distanz zwischen den beiden nodes && Node Nachbarn werden zur Stammnode hinzugefügt
+                    nodes.add(nodeA);
                 }
             }
         }
-        System.out.println(shortestDistance);
-        return null;
-    }
-    public int shortestDistanceIndex(boolean visited[], double distance[])
-    {
-        double min = Double.MAX_VALUE;
-        int index = -1;
-        for(int i =0; i<50; i++)
-        {
-            if(distance[i]<=min && !visited[i])
-            {
-                min = distance[i];
-                index = i;
+
+        Set<Node> settledNodes = new HashSet<>();
+        Set<Node> unsettledNodes = new HashSet<>();
+
+        unsettledNodes.add(startNode);
+
+        while (unsettledNodes.size() != 0) {
+            Node currentNode = getLowestDistanceNode(unsettledNodes);
+            unsettledNodes.remove(currentNode);
+            for (Map.Entry< Node, Integer> adjacencyPair:
+                    currentNode.getAdjacentNodes().entrySet()) {
+                Node adjacentNode = adjacencyPair.getKey();
+                Integer edgeWeight = adjacencyPair.getValue();
+                if (!settledNodes.contains(adjacentNode)) {
+                    CalculateMinimumDistance(adjacentNode, edgeWeight, currentNode);
+                    unsettledNodes.add(adjacentNode);
+                }
             }
+            settledNodes.add(currentNode);
         }
-        return index;
+        Path path = new Path();
+
+        return path;
     }
-    
+
+
+
     public Path determineShortestPath(int sourceNodeId, int targetNodeId, int... viaNodeIds) {
         return null;
     }
@@ -89,5 +112,13 @@ public class Graph {
     
     public List<Edge> determineBottlenecks(int sourceNodeId, int targetNodeId) {
         return null;
+    }
+
+    public Set<Node> getNodes() {
+        return nodes;
+    }
+
+    public void setNodes(Set<Node> nodes) {
+        this.nodes = nodes;
     }
 }
